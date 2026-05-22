@@ -1,15 +1,27 @@
+async function readBody(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  if (typeof req.body === 'string') {
+    try { return JSON.parse(req.body); } catch(e) { return {}; }
+  }
+  return new Promise((resolve) => {
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', () => {
+      try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); }
+      catch(e) { resolve({}); }
+    });
+    req.on('error', () => resolve({}));
+  });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  let body = req.body;
-  if (typeof body === 'string') {
-    try { body = JSON.parse(body); } catch(e) { body = {}; }
-  }
-  body = body || {};
-
+  const body = await readBody(req);
   const { imageBase64, mediaType } = body;
+
   if (!imageBase64) return res.status(400).json({ error: 'Missing image data' });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
