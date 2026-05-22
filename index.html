@@ -660,6 +660,9 @@
     <button class="btn-primary" onclick="startCamera()">開始自拍診斷</button>
     <button class="btn-outline" onclick="uploadPhoto()">上傳已有照片</button>
     <input type="file" id="file-input" accept="image/*" onchange="handleUpload(event)">
+    <p style="margin-top:1.5rem;font-size:0.7rem;color:var(--muted);line-height:1.8;opacity:0.8;">
+      照片僅用於本次 AI 分析，分析完成後不會儲存或用於其他用途。
+    </p>
   </div>
 </section>
 
@@ -835,64 +838,11 @@ function analyzePhoto() {
 }
 
 async function callClaudeAPI() {
-  const prompt = `你是一位專業的皮膚科美容顧問。請仔細觀察這張臉部照片，進行肌膚類型診斷。
-
-請以 JSON 格式回覆（不要加任何 markdown 符號），格式如下：
-{
-  "skinType": "混合肌",
-  "subType": "T區偏油・兩頰偏乾",
-  "scores": {
-    "oilBalance": 72,
-    "sensitivity": 45,
-    "hydration": 63
-  },
-  "traits": [
-    {"icon": "💧", "name": "缺水", "desc": "皮膚表層水分不足，易出現細紋", "level": 70},
-    {"icon": "✨", "name": "毛孔粗大", "desc": "T區毛孔明顯，需定期清潔", "level": 60},
-    {"icon": "🌸", "name": "輕微泛紅", "desc": "兩頰輕微敏感泛紅", "level": 40}
-  ],
-  "aiNote": "根據照片分析，您的肌膚呈現典型的混合性特徵...",
-  "products": [
-    {"emoji": "🧴", "type": "潔膚", "name": "溫和胺基酸潔面乳"},
-    {"emoji": "💦", "type": "保濕", "name": "玻尿酸補水精華"},
-    {"emoji": "🌿", "type": "修護", "name": "積雪草舒緩面膜"},
-    {"emoji": "☀️", "type": "防曬", "name": "輕薄水感防曬霜 SPF50"},
-    {"emoji": "🫧", "type": "去角質", "name": "果酸煥膚精華液"}
-  ],
-  "courses": [
-    {"icon": "🫁", "name": "深層清潔護理課程", "tag": "每月 1-2 次"},
-    {"icon": "💎", "name": "水光針玻尿酸補水", "tag": "建議療程"},
-    {"icon": "🌬️", "name": "高壓氧護膚療程", "tag": "舒緩敏感"}
-  ],
-  "dietGood": [
-    {"emoji": "🥑", "name": "酪梨", "desc": "富含健康脂肪，滋潤皮膚屏障"},
-    {"emoji": "🫐", "name": "藍莓", "desc": "高抗氧化，對抗自由基老化"},
-    {"emoji": "🐟", "name": "深海魚", "desc": "Omega-3 有助消炎減敏"},
-    {"emoji": "🥦", "name": "花椰菜", "desc": "維生素C促進膠原蛋白生成"}
-  ],
-  "dietAvoid": [
-    {"emoji": "🍟", "name": "油炸食物", "desc": "加重出油、毛孔堵塞"},
-    {"emoji": "🍰", "name": "精製糖", "desc": "糖化作用加速肌膚老化"}
-  ]
-}
-
-重要：請根據照片中真實觀察到的膚況給出診斷。若照片不清楚或無法判斷，請給出通用的混合肌建議。所有內容必須用繁體中文。`;
-
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: capturedBase64 } },
-            { type: 'text', text: prompt }
-          ]
-        }]
-      })
+      body: JSON.stringify({ imageBase64: capturedBase64, mediaType: 'image/jpeg' })
     });
 
     const data = await response.json();
@@ -951,6 +901,12 @@ function getFallbackResult() {
   };
 }
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function renderResult(r) {
   document.getElementById('result-skin-type').textContent = r.skinType;
   document.getElementById('result-sub-type').textContent = r.subType;
@@ -965,7 +921,7 @@ function renderResult(r) {
   body.innerHTML += `
     <div class="ai-analysis-note">
       <strong style="color:var(--deep)">✦ AI 分析摘要</strong><br>
-      ${r.aiNote}
+      ${escapeHtml(r.aiNote)}
     </div>`;
 
   // Traits
@@ -975,14 +931,14 @@ function renderResult(r) {
     <div class="traits-list">
       ${r.traits.map(t => `
         <div class="trait-item">
-          <div class="trait-icon">${t.icon}</div>
+          <div class="trait-icon">${escapeHtml(t.icon)}</div>
           <div class="trait-text">
-            <div class="trait-name">${t.name}</div>
-            <div class="trait-desc">${t.desc}</div>
+            <div class="trait-name">${escapeHtml(t.name)}</div>
+            <div class="trait-desc">${escapeHtml(t.desc)}</div>
           </div>
           <div class="trait-bar-wrap">
             <div class="trait-bar">
-              <div class="trait-bar-fill" style="width:${t.level}%"></div>
+              <div class="trait-bar-fill" style="width:${escapeHtml(String(t.level))}%"></div>
             </div>
           </div>
         </div>`).join('')}
@@ -995,9 +951,9 @@ function renderResult(r) {
     <div class="products-scroll">
       ${r.products.map(p => `
         <div class="product-card">
-          <div class="product-emoji">${p.emoji}</div>
-          <div class="product-type">${p.type}</div>
-          <div class="product-name">${p.name}</div>
+          <div class="product-emoji">${escapeHtml(p.emoji)}</div>
+          <div class="product-type">${escapeHtml(p.type)}</div>
+          <div class="product-name">${escapeHtml(p.name)}</div>
         </div>`).join('')}
     </div>`;
 
@@ -1008,10 +964,10 @@ function renderResult(r) {
     <div class="course-list">
       ${r.courses.map(c => `
         <div class="course-card">
-          <div class="course-icon">${c.icon}</div>
+          <div class="course-icon">${escapeHtml(c.icon)}</div>
           <div class="course-info">
-            <div class="course-name">${c.name}</div>
-            <span class="course-tag">${c.tag}</span>
+            <div class="course-name">${escapeHtml(c.name)}</div>
+            <span class="course-tag">${escapeHtml(c.tag)}</span>
           </div>
         </div>`).join('')}
     </div>`;
@@ -1024,18 +980,18 @@ function renderResult(r) {
     <div class="diet-grid">
       ${r.dietGood.map(d => `
         <div class="diet-card">
-          <div class="diet-emoji">${d.emoji}</div>
-          <div class="diet-name">${d.name}</div>
-          <div class="diet-desc">${d.desc}</div>
+          <div class="diet-emoji">${escapeHtml(d.emoji)}</div>
+          <div class="diet-name">${escapeHtml(d.name)}</div>
+          <div class="diet-desc">${escapeHtml(d.desc)}</div>
         </div>`).join('')}
     </div>
     <p class="section-label">建議避免</p>
     <div class="diet-grid">
       ${r.dietAvoid.map(d => `
         <div class="diet-card avoid">
-          <div class="diet-emoji">${d.emoji}</div>
-          <div class="diet-name">${d.name}</div>
-          <div class="diet-desc">${d.desc}</div>
+          <div class="diet-emoji">${escapeHtml(d.emoji)}</div>
+          <div class="diet-name">${escapeHtml(d.name)}</div>
+          <div class="diet-desc">${escapeHtml(d.desc)}</div>
         </div>`).join('')}
     </div>`;
 }
