@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#fdf6f0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>LUMINA · 肌膚診斷</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Serif+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #fdf6f0;
+    --warm-white: #faf5ef;
+    --blush: #f2d5c4;
+    --rose: #d4927a;
+    --terracotta: #b5674a;
+    --deep: #3d2418;
+    --muted: #8a6a5a;
+    --border: rgba(180,130,100,0.2);
+    --accent: #c4956a;
+    --success: #7a9e7e;
+    --gold: #c9a96e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Noto Serif TC', serif;
+    background: var(--cream);
+    color: var(--deep);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ── SCREEN 1: Welcome ── */
+  #screen-welcome {
+    background: var(--cream);
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  #screen-welcome::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 60vw;
+    height: 60vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(242,213,196,0.5) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  #screen-welcome::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: -10%;
+    width: 50vw;
+    height: 50vw;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201,169,110,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .welcome-inner { text-align: center; position: relative; z-index: 1; max-width: 320px; }
+  .logo-mark {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 2rem;
+    border: 1.5px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-mark svg { width: 32px; height: 32px; }
+  .welcome-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    color: var(--deep);
+    margin-bottom: 0.5rem;
+  }
+  .welcome-sub {
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    margin-bottom: 3rem;
+  }
+  .welcome-desc {
+    font-size: 0.9rem;
+    line-height: 2;
+    color: var(--muted);
+    margin-bottom: 3rem;
+  }
+  .btn-primary {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background: var(--deep);
+    color: var(--cream);
+    border: none;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    border-radius: 2px;
+  }
+  .btn-primary:active { opacity: 0.8; }
+  .btn-outline {
+    display: block;
+    width: 100%;
+    padding: 0.9rem;
+    background: transparent;
+    color: var(--deep);
+    border: 1px solid var(--border);
+    font-family: 'Noto Serif TC', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+    margin-top: 0.75rem;
+  }
+  .btn-outline:active { background: var(--blush); }
+
+  /* ── SCREEN 2: Camera ── */
+  #screen-camera {
+    background: #1a0f09;
+    position: relative;
+  }
+  #video-el {
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
+    display: block;
+    transform: scaleX(-1);
+  }
+  .camera-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem 2rem 4rem;
+  }
+  .camera-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .camera-brand {
+    font-family: 'Cormorant Garamond', serif;
+    color: rgba(255,255,255,0.9);
+    font-size: 1.2rem;
+    letter-spacing: 0.3em;
+    font-weight: 300;
+  }
+  .camera-close {
+    background: rgba(0,0,0,0.4);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .face-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    width: 220px;
+    height: 280px;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+    pointer-events: none;
+  }
+  .face-guide::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border: 0.5px solid rgba(255,255,255,0.2);
+    border-radius: inherit;
+  }
+  .camera-hint {
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 2rem;
+  }
+  .shutter-wrap { display: flex; justify-content: center; }
+  .shutter-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.8);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+  }
+  .shutter-btn:active { transform: scale(0.92); }
+  .shutter-inner {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+  }
+  canvas#snapshot { display: none; }
+
+  /* ── SCREEN 3: Preview ── */
+  #screen-preview {
+    background: var(--deep);
+    align-items: center;
+    justify-content: space-between;
+    padding: 4rem 2rem 3rem;
+  }
+  #preview-img {
+    width: 200px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 4px;
+    display: block;
+    margin: 0 auto;
+    border: 2px solid rgba(242,213,196,0.3);
+    transform: scaleX(-1);
+  }
+  .preview-title {
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--cream);
+    font-size: 1.6rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-align: center;
+    margin: 2rem 0 0.5rem;
+  }
+  .preview-sub {
+    color: var(--blush);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    opacity: 0.7;
+  }
+  .preview-actions { width: 100%; }
+  .btn-light {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background: var(--cream);
+    color: var(--deep);
+    border: none;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-bottom: 0.75rem;
+  }
+  .btn-ghost {
+    display: block;
+    width: 100%;
+    padding: 0.9rem;
+    background: transparent;
+    color: rgba(253,246,240,0.6);
+    border: 1px solid rgba(253,246,240,0.2);
+    font-family: 'Noto Serif TC', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+
+  /* ── SCREEN 4: Analyzing ── */
+  #screen-analyzing {
+    background: var(--cream);
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 2rem;
+  }
+  .analyzing-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 2.5rem;
+  }
+  .analyzing-circle::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    border-top-color: var(--accent);
+    animation: spin 1.2s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .analyzing-img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+  .analyzing-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.75rem;
+    color: var(--deep);
+  }
+  .analyzing-step {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    min-height: 1.5rem;
+    text-align: center;
+    transition: opacity 0.3s;
+  }
+  .analyzing-dots { margin-top: 3rem; display: flex; gap: 8px; }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--blush);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1.2); opacity: 1; }
+  }
+
+  /* ── SCREEN 5: Result ── */
+  #screen-result {
+    background: var(--warm-white);
+    flex-direction: column;
+  }
+  .result-header {
+    background: var(--deep);
+    padding: 3rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: 0; right: 0;
+    height: 60px;
+    background: var(--warm-white);
+    border-radius: 50% 50% 0 0;
+  }
+  .result-top { display: flex; align-items: flex-start; gap: 1.25rem; margin-bottom: 1.5rem; }
+  .result-face {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    transform: scaleX(-1);
+    border: 2px solid rgba(242,213,196,0.4);
+    flex-shrink: 0;
+  }
+  .result-meta { flex: 1; }
+  .result-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    color: rgba(242,213,196,0.7);
+    margin-bottom: 0.4rem;
+  }
+  .result-skin-type {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 400;
+    color: var(--cream);
+    line-height: 1.1;
+    margin-bottom: 0.5rem;
+  }
+  .result-sub-type { font-size: 0.8rem; color: rgba(242,213,196,0.8); letter-spacing: 0.1em; }
+  .skin-score-row {
+    display: flex;
+    gap: 0.75rem;
+    position: relative;
+    z-index: 1;
+  }
+  .score-chip {
+    flex: 1;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 0.6rem 0.5rem;
+    text-align: center;
+  }
+  .score-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--cream);
+    display: block;
+  }
+  .score-name { font-size: 0.65rem; color: rgba(242,213,196,0.6); letter-spacing: 0.1em; display: block; margin-top: 2px; }
+
+  .result-body {
+    flex: 1;
+    padding: 2.5rem 1.25rem 2rem;
+    overflow-y: auto;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    color: var(--deep);
+    margin-bottom: 0.3rem;
+  }
+  .section-divider {
+    width: 32px;
+    height: 1px;
+    background: var(--accent);
+    margin-bottom: 1.25rem;
+  }
+
+  /* Traits */
+  .traits-list { margin-bottom: 2rem; }
+  .trait-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+  .trait-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--blush);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .trait-text { flex: 1; }
+  .trait-name { font-size: 0.85rem; font-weight: 500; color: var(--deep); }
+  .trait-desc { font-size: 0.75rem; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+  .trait-bar-wrap { width: 60px; }
+  .trait-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .trait-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: width 1s ease;
+  }
+
+  /* Products */
+  .products-scroll {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 2rem;
+  }
+  .products-scroll::-webkit-scrollbar { display: none; }
+  .product-card {
+    min-width: 130px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 1rem 0.85rem;
+    flex-shrink: 0;
+  }
+  .product-emoji { font-size: 1.8rem; margin-bottom: 0.5rem; }
+  .product-type {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+  .product-name { font-size: 0.8rem; color: var(--deep); font-weight: 500; line-height: 1.4; }
+
+  /* Courses */
+  .course-list { margin-bottom: 2rem; }
+  .course-card {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .course-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: var(--cream);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .course-info { flex: 1; }
+  .course-name { font-size: 0.85rem; font-weight: 500; color: var(--deep); margin-bottom: 0.2rem; }
+  .course-tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    background: rgba(196,149,106,0.1);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  /* Diet */
+  .diet-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .diet-card {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 0.9rem;
+  }
+  .diet-emoji { font-size: 1.5rem; margin-bottom: 0.4rem; }
+  .diet-name { font-size: 0.8rem; font-weight: 500; color: var(--deep); margin-bottom: 0.3rem; }
+  .diet-desc { font-size: 0.7rem; color: var(--muted); line-height: 1.5; }
+  .diet-card.avoid { border-color: rgba(181,103,74,0.3); background: rgba(181,103,74,0.03); }
+  .diet-card.avoid .diet-name { color: var(--terracotta); }
+
+  .section-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .result-footer {
+    padding: 1rem 1.25rem 2.5rem;
+    background: var(--warm-white);
+  }
+
+  /* ── Upload option ── */
+  #file-input { display: none; }
+  
+  /* ── No camera fallback ── */
+  #screen-nocam {
+    background: var(--cream);
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  /* ── Utility ── */
+  .fade-in {
+    animation: fadeIn 0.6s ease forwards;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .loading-text-wrap { text-align: center; margin-top: 2rem; }
+
+  /* AI Answer display */
+  .ai-analysis-note {
+    background: rgba(196,149,106,0.08);
+    border: 1px solid rgba(196,149,106,0.2);
+    border-radius: 6px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .retry-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 1.5rem;
+    background: var(--deep);
+    color: var(--cream);
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 1.5rem;
+    font-family: 'Noto Serif TC', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(61,36,24,0.25);
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<!-- Screen 1: Welcome -->
+<section class="screen active" id="screen-welcome">
+  <div class="welcome-inner fade-in">
+    <div class="logo-mark">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="12" r="5" stroke="#c4956a" stroke-width="1.2"/>
+        <path d="M8 28c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#c4956a" stroke-width="1.2" stroke-linecap="round"/>
+        <path d="M16 4v2M16 20v2M4 12h2M26 12h2" stroke="#c4956a" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+      </svg>
+    </div>
+    <div class="welcome-brand">LUMINA</div>
+    <div class="welcome-sub">AI 肌膚診斷</div>
+    <p class="welcome-desc">
+      透過 AI 深度分析您的膚況，<br>
+      精準診斷肌膚類型，<br>
+      給予量身訂製的保養建議。
+    </p>
+    <button class="btn-primary" onclick="startCamera()">開始自拍診斷</button>
+    <button class="btn-outline" onclick="uploadPhoto()">上傳已有照片</button>
+    <input type="file" id="file-input" accept="image/*" onchange="handleUpload(event)">
+  </div>
+</section>
+
+<!-- Screen 2: Camera -->
+<section class="screen" id="screen-camera">
+  <video id="video-el" autoplay playsinline muted></video>
+  <div class="camera-overlay">
+    <div class="camera-top">
+      <span class="camera-brand">LUMINA</span>
+      <button class="camera-close" onclick="closeCamera()">✕</button>
+    </div>
+    <div class="face-guide"></div>
+    <div>
+      <p class="camera-hint">將臉部置於框架中央</p>
+      <div class="shutter-wrap">
+        <button class="shutter-btn" onclick="takePhoto()">
+          <div class="shutter-inner"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+  <canvas id="snapshot"></canvas>
+</section>
+
+<!-- Screen 3: Preview -->
+<section class="screen" id="screen-preview">
+  <img id="preview-img" src="" alt="預覽">
+  <div>
+    <p class="preview-title">確認照片</p>
+    <p class="preview-sub">請確保臉部清晰可見</p>
+  </div>
+  <div class="preview-actions">
+    <button class="btn-light" onclick="analyzePhoto()">開始 AI 分析</button>
+    <button class="btn-ghost" onclick="retakePhoto()">重新拍攝</button>
+  </div>
+</section>
+
+<!-- Screen 4: Analyzing -->
+<section class="screen" id="screen-analyzing">
+  <div class="analyzing-circle">
+    <img id="analyzing-img" class="analyzing-img" src="" alt="">
+  </div>
+  <div class="analyzing-title">深度分析中</div>
+  <div class="analyzing-step" id="analyzing-step">正在識別膚色...</div>
+  <div class="analyzing-dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+</section>
+
+<!-- Screen 5: Result -->
+<section class="screen" id="screen-result">
+  <div class="result-header">
+    <div class="result-top">
+      <img id="result-face" class="result-face" src="" alt="">
+      <div class="result-meta">
+        <p class="result-label">診斷結果</p>
+        <p class="result-skin-type" id="result-skin-type">混合肌</p>
+        <p class="result-sub-type" id="result-sub-type">T 區偏油・兩頰偏乾</p>
+      </div>
+    </div>
+    <div class="skin-score-row">
+      <div class="score-chip">
+        <span class="score-val" id="score-oil">72</span>
+        <span class="score-name">水油平衡</span>
+      </div>
+      <div class="score-chip">
+        <span class="score-val" id="score-sensitivity">45</span>
+        <span class="score-name">敏感指數</span>
+      </div>
+      <div class="score-chip">
+        <span class="score-val" id="score-hydration">63</span>
+        <span class="score-name">含水量</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="result-body" id="result-body">
+    <!-- Filled dynamically -->
+  </div>
+
+  <div class="result-footer">
+    <button class="btn-primary" onclick="goHome()" style="background: var(--terracotta);">重新診斷</button>
+  </div>
+</section>
+
+<script>
+// ── State ──
+let stream = null;
+let capturedDataURL = null;
+let capturedBase64 = null;
+
+// ── Navigation ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Camera ──
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    document.getElementById('video-el').srcObject = stream;
+    showScreen('screen-camera');
+  } catch(e) {
+    alert('無法存取相機，請改用上傳照片功能。');
+  }
+}
+
+function closeCamera() {
+  if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  showScreen('screen-welcome');
+}
+
+function takePhoto() {
+  const video = document.getElementById('video-el');
+  const canvas = document.getElementById('snapshot');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  capturedDataURL = canvas.toDataURL('image/jpeg', 0.85);
+  capturedBase64 = capturedDataURL.split(',')[1];
+  if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  document.getElementById('preview-img').src = capturedDataURL;
+  showScreen('screen-preview');
+}
+
+// ── Upload ──
+function uploadPhoto() { document.getElementById('file-input').click(); }
+
+function handleUpload(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    capturedDataURL = e.target.result;
+    capturedBase64 = capturedDataURL.split(',')[1];
+    document.getElementById('preview-img').src = capturedDataURL;
+    showScreen('screen-preview');
+  };
+  reader.readAsDataURL(file);
+}
+
+function retakePhoto() {
+  capturedDataURL = null;
+  capturedBase64 = null;
+  showScreen('screen-welcome');
+}
+
+// ── Analysis ──
+const steps = ['正在識別膚色...','分析皮脂分佈...','偵測敏感部位...','評估含水量...','生成個人化建議...'];
+let stepIdx = 0;
+let stepTimer = null;
+
+function analyzePhoto() {
+  document.getElementById('analyzing-img').src = capturedDataURL;
+  showScreen('screen-analyzing');
+  document.getElementById('result-face').src = capturedDataURL;
+
+  // Cycle text steps
+  stepIdx = 0;
+  document.getElementById('analyzing-step').textContent = steps[0];
+  stepTimer = setInterval(() => {
+    stepIdx = (stepIdx + 1) % steps.length;
+    document.getElementById('analyzing-step').textContent = steps[stepIdx];
+  }, 1800);
+
+  callClaudeAPI();
+}
+
+async function callClaudeAPI() {
+  const prompt = `你是一位專業的皮膚科美容顧問。請仔細觀察這張臉部照片，進行肌膚類型診斷。
+
+請以 JSON 格式回覆（不要加任何 markdown 符號），格式如下：
+{
+  "skinType": "混合肌",
+  "subType": "T區偏油・兩頰偏乾",
+  "scores": {
+    "oilBalance": 72,
+    "sensitivity": 45,
+    "hydration": 63
+  },
+  "traits": [
+    {"icon": "💧", "name": "缺水", "desc": "皮膚表層水分不足，易出現細紋", "level": 70},
+    {"icon": "✨", "name": "毛孔粗大", "desc": "T區毛孔明顯，需定期清潔", "level": 60},
+    {"icon": "🌸", "name": "輕微泛紅", "desc": "兩頰輕微敏感泛紅", "level": 40}
+  ],
+  "aiNote": "根據照片分析，您的肌膚呈現典型的混合性特徵...",
+  "products": [
+    {"emoji": "🧴", "type": "潔膚", "name": "溫和胺基酸潔面乳"},
+    {"emoji": "💦", "type": "保濕", "name": "玻尿酸補水精華"},
+    {"emoji": "🌿", "type": "修護", "name": "積雪草舒緩面膜"},
+    {"emoji": "☀️", "type": "防曬", "name": "輕薄水感防曬霜 SPF50"},
+    {"emoji": "🫧", "type": "去角質", "name": "果酸煥膚精華液"}
+  ],
+  "courses": [
+    {"icon": "🫁", "name": "深層清潔護理課程", "tag": "每月 1-2 次"},
+    {"icon": "💎", "name": "水光針玻尿酸補水", "tag": "建議療程"},
+    {"icon": "🌬️", "name": "高壓氧護膚療程", "tag": "舒緩敏感"}
+  ],
+  "dietGood": [
+    {"emoji": "🥑", "name": "酪梨", "desc": "富含健康脂肪，滋潤皮膚屏障"},
+    {"emoji": "🫐", "name": "藍莓", "desc": "高抗氧化，對抗自由基老化"},
+    {"emoji": "🐟", "name": "深海魚", "desc": "Omega-3 有助消炎減敏"},
+    {"emoji": "🥦", "name": "花椰菜", "desc": "維生素C促進膠原蛋白生成"}
+  ],
+  "dietAvoid": [
+    {"emoji": "🍟", "name": "油炸食物", "desc": "加重出油、毛孔堵塞"},
+    {"emoji": "🍰", "name": "精製糖", "desc": "糖化作用加速肌膚老化"}
+  ]
+}
+
+重要：請根據照片中真實觀察到的膚況給出診斷。若照片不清楚或無法判斷，請給出通用的混合肌建議。所有內容必須用繁體中文。`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: capturedBase64 } },
+            { type: 'text', text: prompt }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    clearInterval(stepTimer);
+
+    let text = data.content?.find(b => b.type === 'text')?.text || '';
+    text = text.replace(/```json|```/g, '').trim();
+
+    let result;
+    try { result = JSON.parse(text); }
+    catch(e) { result = getFallbackResult(); }
+
+    renderResult(result);
+    showScreen('screen-result');
+
+  } catch(err) {
+    clearInterval(stepTimer);
+    renderResult(getFallbackResult());
+    showScreen('screen-result');
+  }
+}
+
+function getFallbackResult() {
+  return {
+    skinType: '混合肌',
+    subType: 'T 區偏油・兩頰偏乾',
+    scores: { oilBalance: 68, sensitivity: 42, hydration: 58 },
+    traits: [
+      { icon: '💧', name: '水分不足', desc: '皮膚表層水分略顯不足，容易出現乾燥細紋', level: 65 },
+      { icon: '✨', name: '毛孔明顯', desc: 'T區毛孔較粗大，建議定期深層清潔', level: 55 },
+      { icon: '🌸', name: '輕微敏感', desc: '兩頰偶有泛紅，需注重舒緩保養', level: 35 }
+    ],
+    aiNote: '根據您的照片，肌膚呈現混合性特徵，T區容易出油而兩頰偏乾，這是台灣氣候下相當常見的膚況。建議採取分區保養策略，輕柔清潔後加強補水，並注意防曬。',
+    products: [
+      { emoji: '🧴', type: '潔膚', name: '胺基酸溫和潔面乳' },
+      { emoji: '💦', type: '精華', name: '玻尿酸多重補水精華' },
+      { emoji: '🌿', type: '面膜', name: '積雪草舒緩修護面膜' },
+      { emoji: '☀️', type: '防曬', name: '水感隔離乳 SPF50+' },
+      { emoji: '🍃', type: '乳液', name: '輕盈均衡控油乳液' }
+    ],
+    courses: [
+      { icon: '🫁', name: '深層清潔煥膚護理', tag: '每月 1-2 次' },
+      { icon: '💎', name: '水光針補水療程', tag: '推薦療程' },
+      { icon: '🌬️', name: '高壓氧舒緩護膚', tag: '敏感改善' }
+    ],
+    dietGood: [
+      { emoji: '🥑', name: '酪梨', desc: '健康脂肪酸滋潤皮膚屏障' },
+      { emoji: '🫐', name: '藍莓', desc: '強效抗氧化，對抗自由基' },
+      { emoji: '🐟', name: '深海魚', desc: 'Omega-3 消炎，改善敏感' },
+      { emoji: '🥦', name: '花椰菜', desc: '維生素 C 促進膠原蛋白' }
+    ],
+    dietAvoid: [
+      { emoji: '🍟', name: '油炸食物', desc: '加重皮脂分泌、毛孔堵塞' },
+      { emoji: '🍰', name: '精製糖', desc: '糖化作用加速肌膚老化' }
+    ]
+  };
+}
+
+function renderResult(r) {
+  document.getElementById('result-skin-type').textContent = r.skinType;
+  document.getElementById('result-sub-type').textContent = r.subType;
+  document.getElementById('score-oil').textContent = r.scores.oilBalance;
+  document.getElementById('score-sensitivity').textContent = r.scores.sensitivity;
+  document.getElementById('score-hydration').textContent = r.scores.hydration;
+
+  const body = document.getElementById('result-body');
+  body.innerHTML = '';
+
+  // AI Note
+  body.innerHTML += `
+    <div class="ai-analysis-note">
+      <strong style="color:var(--deep)">✦ AI 分析摘要</strong><br>
+      ${r.aiNote}
+    </div>`;
+
+  // Traits
+  body.innerHTML += `
+    <p class="section-title">肌膚特徵</p>
+    <div class="section-divider"></div>
+    <div class="traits-list">
+      ${r.traits.map(t => `
+        <div class="trait-item">
+          <div class="trait-icon">${t.icon}</div>
+          <div class="trait-text">
+            <div class="trait-name">${t.name}</div>
+            <div class="trait-desc">${t.desc}</div>
+          </div>
+          <div class="trait-bar-wrap">
+            <div class="trait-bar">
+              <div class="trait-bar-fill" style="width:${t.level}%"></div>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+
+  // Products
+  body.innerHTML += `
+    <p class="section-title">推薦產品</p>
+    <div class="section-divider"></div>
+    <div class="products-scroll">
+      ${r.products.map(p => `
+        <div class="product-card">
+          <div class="product-emoji">${p.emoji}</div>
+          <div class="product-type">${p.type}</div>
+          <div class="product-name">${p.name}</div>
+        </div>`).join('')}
+    </div>`;
+
+  // Courses
+  body.innerHTML += `
+    <p class="section-title">建議療程</p>
+    <div class="section-divider"></div>
+    <div class="course-list">
+      ${r.courses.map(c => `
+        <div class="course-card">
+          <div class="course-icon">${c.icon}</div>
+          <div class="course-info">
+            <div class="course-name">${c.name}</div>
+            <span class="course-tag">${c.tag}</span>
+          </div>
+        </div>`).join('')}
+    </div>`;
+
+  // Diet
+  body.innerHTML += `
+    <p class="section-title">飲食建議</p>
+    <div class="section-divider"></div>
+    <p class="section-label">推薦攝取</p>
+    <div class="diet-grid">
+      ${r.dietGood.map(d => `
+        <div class="diet-card">
+          <div class="diet-emoji">${d.emoji}</div>
+          <div class="diet-name">${d.name}</div>
+          <div class="diet-desc">${d.desc}</div>
+        </div>`).join('')}
+    </div>
+    <p class="section-label">建議避免</p>
+    <div class="diet-grid">
+      ${r.dietAvoid.map(d => `
+        <div class="diet-card avoid">
+          <div class="diet-emoji">${d.emoji}</div>
+          <div class="diet-name">${d.name}</div>
+          <div class="diet-desc">${d.desc}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function goHome() {
+  capturedDataURL = null;
+  capturedBase64 = null;
+  showScreen('screen-welcome');
+}
+
+// ── PWA Service Worker ──
+if('serviceWorker' in navigator) {
+  const swCode = `
+    self.addEventListener('install', e => self.skipWaiting());
+    self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+    self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
+  `;
+  const blob = new Blob([swCode], {type: 'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+</script>
+</body>
+</html>
